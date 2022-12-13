@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  a {
+    @apply text-purple-500 hover:underline
+  }
+
+  body {
+    @apply bg-[#0a0a0a] text-neutral-200
+  }
+}

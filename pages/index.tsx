@@ -1,86 +1,123 @@
-import type { NextPage } from 'next'
-import Head from 'next/head'
-import Image from 'next/image'
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import type { NextPage } from "next";
+import { useAccount, useSignMessage } from "wagmi";
+import { useState } from "react";
+import { verifyMessage, arrayify } from "ethers/lib/utils";
+import canonicalize from "canonicalize";
+
+const time = Date.now();
 
 const Home: NextPage = () => {
+  function internalBase64Encode(input: string) {
+    return input.replaceAll("+", ".").replaceAll("/", "_").replaceAll("=", "-");
+  }
+
+  const [authSuccess, setAuthSuccess] = useState(false);
+  const [redirectLink, setRedirectLink] = useState("");
+
+  console.log(time);
+  const payload = canonicalize({
+    method: "generateToken",
+    params: {
+      timestamp: time,
+    },
+  });
+  console.log(payload);
+
+  const { signMessage } = useSignMessage({
+    message: payload,
+    onSuccess(data, variables) {
+      const address = verifyMessage(variables.message, data);
+      console.log(`message: ${variables.message}`);
+      console.log(`sign address: ${address}`);
+      console.log(`signed payload: ${data}`);
+      const signedPayload = data;
+
+      const signature = Buffer.from(arrayify(signedPayload)).toString("base64");
+
+      const selfSignedToken = `eip191:${signature}`;
+      console.log(selfSignedToken);
+      (async function () {
+        const response = await fetch("/api/auth", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${selfSignedToken}`,
+          },
+          body: JSON.stringify({ payload, selfSignedToken }),
+        });
+        const data = await response.json();
+        console.log(JSON.stringify(data));
+
+        if (typeof window !== "undefined" && data.secret) {
+          const link = `https://phrasetown.com/auth?k=${internalBase64Encode(
+            data.secret
+          )}`;
+          setRedirectLink(link);
+          // await new Promise((r) => setTimeout(r, 5000));
+          window.location.href = link;
+        }
+      })();
+    },
+  });
+
+  useAccount({
+    onConnect({ address, connector, isReconnected }) {
+      signMessage();
+    },
+  });
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center py-2">
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main className="flex w-full flex-1 flex-col items-center justify-center px-20 text-center">
-        <h1 className="text-6xl font-bold">
-          Welcome to{' '}
-          <a className="text-blue-600" href="https://nextjs.org">
-            Next.js!
-          </a>
-        </h1>
-
-        <p className="mt-3 text-2xl">
-          Get started by editing{' '}
-          <code className="rounded-md bg-gray-100 p-3 font-mono text-lg">
-            pages/index.tsx
-          </code>
-        </p>
-
-        <div className="mt-6 flex max-w-4xl flex-wrap items-center justify-around sm:w-full">
-          <a
-            href="https://nextjs.org/docs"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Documentation &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Find in-depth information about Next.js features and its API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Learn &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Learn about Next.js in an interactive course with quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Examples &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Discover and deploy boilerplate example Next.js projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Deploy &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className="flex h-24 w-full items-center justify-center border-t">
+    <div className="max-w-md mx-auto text-xl py-5 flex flex-col space-y-4 px-1">
+      <p className="font-[900]">Phrasetown Connect</p>
+      <span>
+        {" "}
+        Connect your wallet to use Phrasetown, a Farcaster web client.
+      </span>
+      <span> Steps:</span>
+      <span>
+        {" "}
+        1. Coinbase Wallet, Rainbow Wallet, Trust Wallet, pick any of these
+        mobile wallets and load your Farcaster seed phrase in it (the seed
+        phrase Farcaster provided when registering)
+      </span>
+      <span> 2. Connect the wallet, scan QR</span>
+      <span>
+        {" "}
+        3. A message will appear on your screen, click sign (it is not an
+        onchain transaction, signature is required to create an authentication
+        key, which is stored in your browser and does not get sent to any
+        server)
+      </span>
+      <span>
+        {" "}
+        4. Magic happens on the background, and you will be redirected to
+        Phrasetown
+      </span>
+      <ConnectButton />
+      {/* <span className="text-base text-neutral-600">
+        Technical details:{" "}
         <a
-          className="flex items-center justify-center gap-2"
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          className="break-all text-neutral-600 hover:text-neutral-200 hover:underline transition"
+          href="https://github.com/farcasterxyz/protocol#45-signer-authorizations"
         >
-          Powered by{' '}
-          <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
+          https://github.com/farcasterxyz/protocol#45-signer-authorizations
         </a>
-      </footer>
+      </span> */}
+      <a
+        href="https://phrasetown.com"
+        className="text-base text-neutral-600 hover:text-neutral-200 hover:underline transition"
+      >
+        Back to client
+      </a>
+      <span className="text-base text-neutral-600">
+        P.S. Experimental feature, bugs are likely. If you encounter problems
+        when using Phrasetown, email me at vincent@pixelhack.xyz or ping me on
+        Farcaster @pixel and I will help you sort it out. I recommend using
+        burner Farcaster account instead of your main to test this out first.
+      </span>
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;
