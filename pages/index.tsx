@@ -95,26 +95,24 @@ const Home: NextPage = () => {
         Phrasetown
       </span>
       <ConnectButton />
-      {/* <span className="text-base text-neutral-600">
-        Technical details:{" "}
-        <a
-          className="break-all text-neutral-600 hover:text-neutral-200 hover:underline transition"
-          href="https://github.com/farcasterxyz/protocol#45-signer-authorizations"
-        >
-          https://github.com/farcasterxyz/protocol#45-signer-authorizations
-        </a>
-      </span> */}
       <a
         href="https://phrasetown.com"
         className="text-base text-neutral-600 hover:text-neutral-200 hover:underline transition"
       >
         Back to client
       </a>
+      <a
+        href="https://github.com/vinliao/phrasetown-connect"
+        className="text-base text-neutral-600 hover:text-neutral-200 hover:underline transition"
+      >
+        https://github.com/vinliao/phrasetown-connect
+      </a>
       <span className="text-base text-neutral-600">
         P.S. Experimental feature, bugs are likely. If you encounter problems
         when using Phrasetown, email me at vincent@pixelhack.xyz or ping me on
         Farcaster @pixel and I will help you sort it out. I recommend using
-        burner Farcaster account instead of your main to test this out first.
+        burner Farcaster account instead of your main account to test this out
+        first.
       </span>
     </div>
   );
