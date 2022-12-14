@@ -12,7 +12,7 @@ const Home: NextPage = () => {
     return input.replaceAll("+", ".").replaceAll("/", "_").replaceAll("=", "-");
   }
 
-  const [authSuccess, setAuthSuccess] = useState(false);
+  const [authFail, setAuthFail] = useState(false);
   const [redirectLink, setRedirectLink] = useState("");
 
   console.log(time);
@@ -46,16 +46,20 @@ const Home: NextPage = () => {
           },
           body: JSON.stringify({ payload, selfSignedToken }),
         });
-        const data = await response.json();
-        console.log(JSON.stringify(data));
 
-        if (typeof window !== "undefined" && data.secret) {
-          const link = `https://phrasetown.com/auth?k=${internalBase64Encode(
-            data.secret
-          )}`;
-          setRedirectLink(link);
-          // await new Promise((r) => setTimeout(r, 5000));
-          window.location.href = link;
+        if (!response.ok) setAuthFail(true);
+        else {
+          const data = await response.json();
+          console.log(JSON.stringify(data));
+
+          if (typeof window !== "undefined" && data.secret) {
+            const link = `https://phrasetown.com/auth?k=${internalBase64Encode(
+              data.secret
+            )}`;
+            setRedirectLink(link);
+            // await new Promise((r) => setTimeout(r, 5000));
+            window.location.href = link;
+          }
         }
       })();
     },
@@ -66,61 +70,74 @@ const Home: NextPage = () => {
       signMessage();
     },
   });
+  if (authFail) {
+    return (
+      <div className="max-w-md mx-auto text-xl py-5 flex flex-col space-y-4 px-1">
+        <p className="font-[900]">Authentication failed!</p>
+        <span>
+          Are you signing with the seed phrase that Farcaster gave you? This
+          connector only works if you sign with your Farcaster address.
+        </span>
 
-  return (
-    <div className="max-w-md mx-auto text-xl py-5 flex flex-col space-y-4 px-1">
-      <p className="font-[900]">Phrasetown Connect</p>
-      <span>
-        {" "}
-        Connect your wallet to use Phrasetown, a Farcaster web client.
-      </span>
-      <span> Steps:</span>
-      <span>
-        {" "}
-        1. Coinbase Wallet, Rainbow Wallet, Trust Wallet, pick any of these
-        mobile wallets and load your Farcaster seed phrase in it (the seed
-        phrase Farcaster provided when registering)
-      </span>
-      <span>
-        {" "}
-        2. (Again, you have to use the seed Farcaster gave you. This connector
-        will not work if you sign with your usual non-Farcaster seed phrase!)
-      </span>
-      <span> 3. Connect the wallet, scan QR</span>
-      <span>
-        {" "}
-        4. A message will appear on your screen, click sign (it is not an
-        onchain transaction, signature is required to create an authentication
-        key, which is stored in your browser and does not get sent to any
-        server)
-      </span>
-      <span>
-        {" "}
-        5. Magic happens on the background, and you will be redirected to
-        Phrasetown
-      </span>
-      <ConnectButton />
-      <a
-        href="https://phrasetown.com"
-        className="text-base text-neutral-600 hover:text-neutral-200 hover:underline transition"
-      >
-        Back to client
-      </a>
-      <a
-        href="https://github.com/vinliao/phrasetown-connect"
-        className="text-base text-neutral-600 hover:text-neutral-200 hover:underline transition"
-      >
-        https://github.com/vinliao/phrasetown-connect
-      </a>
-      <span className="text-base text-neutral-600">
-        P.S. Experimental feature, bugs are likely. If you encounter problems
-        when using Phrasetown, email me at vincent@pixelhack.xyz or ping me on
-        Farcaster @pixel and I will help you sort it out. I recommend using
-        burner Farcaster account instead of your main account to test this out
-        first.
-      </span>
-    </div>
-  );
+        <span>Please refresh and try again :)</span>
+      </div>
+    );
+  } else {
+    return (
+      <div className="max-w-md mx-auto text-xl py-5 flex flex-col space-y-4 px-1">
+        <p className="font-[900]">Phrasetown Connect</p>
+        <span>
+          {" "}
+          Connect your wallet to use Phrasetown, a Farcaster web client.
+        </span>
+        <span> Steps:</span>
+        <span>
+          {" "}
+          1. Coinbase Wallet, Rainbow Wallet, Trust Wallet, pick any of these
+          mobile wallets and load your Farcaster seed phrase in it (the seed
+          phrase Farcaster provided when registering)
+        </span>
+        <span>
+          {" "}
+          2. (Again, you have to use the seed Farcaster gave you. This connector
+          will not work if you sign with your usual non-Farcaster seed phrase!)
+        </span>
+        <span> 3. Connect the wallet, scan QR</span>
+        <span>
+          {" "}
+          4. A message will appear on your screen, click sign (it is not an
+          onchain transaction, signature is required to create an authentication
+          key, which is stored in your browser and does not get sent to any
+          server)
+        </span>
+        <span>
+          {" "}
+          5. Magic happens on the background, and you will be redirected to
+          Phrasetown
+        </span>
+        <ConnectButton />
+        <a
+          href="https://phrasetown.com"
+          className="text-base text-neutral-600 hover:text-neutral-200 hover:underline transition"
+        >
+          Back to client
+        </a>
+        <a
+          href="https://github.com/vinliao/phrasetown-connect"
+          className="text-base text-neutral-600 hover:text-neutral-200 hover:underline transition"
+        >
+          https://github.com/vinliao/phrasetown-connect
+        </a>
+        <span className="text-base text-neutral-600">
+          P.S. Experimental feature, bugs are likely. If you encounter problems
+          when using Phrasetown, email me at vincent@pixelhack.xyz or ping me on
+          Farcaster @pixel and I will help you sort it out. I recommend using
+          burner Farcaster account instead of your main account to test this out
+          first.
+        </span>
+      </div>
+    );
+  }
 };
 
 export default Home;
