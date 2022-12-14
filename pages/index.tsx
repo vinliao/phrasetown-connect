@@ -81,17 +81,22 @@ const Home: NextPage = () => {
         mobile wallets and load your Farcaster seed phrase in it (the seed
         phrase Farcaster provided when registering)
       </span>
-      <span> 2. Connect the wallet, scan QR</span>
       <span>
         {" "}
-        3. A message will appear on your screen, click sign (it is not an
+        2. (Again, you have to use the seed Farcaster gave you. This connector
+        will not work if you sign with your usual non-Farcaster seed phrase!)
+      </span>
+      <span> 3. Connect the wallet, scan QR</span>
+      <span>
+        {" "}
+        4. A message will appear on your screen, click sign (it is not an
         onchain transaction, signature is required to create an authentication
         key, which is stored in your browser and does not get sent to any
         server)
       </span>
       <span>
         {" "}
-        4. Magic happens on the background, and you will be redirected to
+        5. Magic happens on the background, and you will be redirected to
         Phrasetown
       </span>
       <ConnectButton />
